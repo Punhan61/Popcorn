@@ -1,5 +1,8 @@
 ﻿#include "Engine.h"
 
+#define _USE_MATH_DEFINES 
+#include<math.h>
+
 enum EBrick_Type
 {
 	EBT_None,
@@ -41,7 +44,7 @@ char Level_01[14][12] =
 };
 
 //------------------------------------------------------------------------------------------------------------
-void Create_Pen_Brush(unsigned char r, unsigned char g, unsigned char b, HPEN &pen, HBRUSH &brush)
+void Create_Pen_Brush(unsigned char r, unsigned char g, unsigned char b, HPEN& pen, HBRUSH& brush)
 {
 	pen = CreatePen(PS_SOLID, 0, RGB(r, g, b));
 	brush = CreateSolidBrush(RGB(r, g, b));
@@ -89,6 +92,32 @@ void Draw_Brick(HDC hdc, int x, int y, EBrick_Type brick_type)
 	RoundRect(hdc, x * Global_Scale, y * Global_Scale, (x + Brick_Width) * Global_Scale, (y + Brick_Height) * Global_Scale, 2 * Global_Scale, 2 * Global_Scale);
 }
 //------------------------------------------------------------------------------------------------------------
+void Draw_Brick_Letter(HDC hdc,int x,int y, int rotation_step)
+{// Вывод падающей буквы
+
+	double rotation_angel = 2.0 * M_PI / 16 * rotation_step;
+	int brick_half_height = Brick_Height * Global_Scale / 2;
+
+	XFORM xform, old_xform;
+
+	SetGraphicsMode(hdc, GM_ADVANCED);
+	xform.eM11 = 1.0f;
+	xform.eM12 = 0.0f;
+	xform.eM21 = 0.0f;
+	xform.eM22 = (float)cos(rotation_angel);
+	xform.eDx = (float)x;
+	xform.eDy = (float)y + (float)brick_half_height;
+	GetWorldTransform(hdc, &old_xform);
+	SetWorldTransform(hdc, &xform);
+
+	SelectObject(hdc, Brick_Blue_Pen);
+	SelectObject(hdc, Brick_Blue_Brush);
+
+	Rectangle(hdc, 0, -brick_half_height, 15 * Global_Scale, brick_half_height);
+
+	SetWorldTransform(hdc, &old_xform);
+}
+//------------------------------------------------------------------------------------------------------------
 void Draw_Level(HDC hdc)
 {// Вывод всех кирпичей уровня
 
@@ -125,8 +154,12 @@ void Draw_Platform(HDC hdc, int x, int y)
 void Draw_Frame(HDC hdc)
 {// Отрисовка экрана игры
 
-	Draw_Level(hdc);
+	//Draw_Level(hdc);
 
-	Draw_Platform(hdc, 50, 100);
+	//Draw_Platform(hdc, 50, 100);
+
+	int i;
+	for (i = 0; i < 16; i++)
+		Draw_Brick_Letter(hdc, 20 + i * Cell_Width * Global_Scale, 100, i);
 }
 //------------------------------------------------------------------------------------------------------------
